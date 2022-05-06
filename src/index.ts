@@ -9,6 +9,10 @@ import { CONFIG } from './config';
 const PUNCTUATION = '[!]*';
 const STRIP_PUNCTUATION = /[^a-zA-Z\d]*/g;
 const VALID_USERNAME = /^[a-zA-Z0-9_]{1,25}$/;
+const CHARS_LOWER = 'abcdefghijklmnopqrstuvwxyz';
+const CHARS_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const CHARS_NUM = '1234567890';
+const CHARS_ALL = CHARS_LOWER + CHARS_UPPER + CHARS_NUM;
 
 const PROFANITY_FILTER = new badWords();
 PROFANITY_FILTER.addWords(...profanity);
@@ -145,7 +149,7 @@ async function main() {
 
   const MSGREGEX = new RegExp(KEYWORDS.map((val) => {
     val = val.replaceAll(STRIP_PUNCTUATION, '');
-    return `(^${val.toLocaleLowerCase()}${PUNCTUATION}$)`;
+    return `(${val.toLocaleLowerCase()}${PUNCTUATION})`;
   }).join('|'), 'i');
 
   initSocketServer();
@@ -164,7 +168,17 @@ async function main() {
         let name = handleUsername(msg.tags['display-name'], msg.prefix.nickname);
         let bad_words = false;
         if (name === null) return; // console.log('Unencodable Name');
-        if (PROFANITY_FILTER.isProfane(name) || PROFANITY_FILTER.isProfane(msg.message)) {
+        if (PROFANITY_FILTER.isProfane(name)) {
+          const orgName = name;
+          while (PROFANITY_FILTER.isProfane(name)) {
+            name = PROFANITY_FILTER.clean(name).split('').map((char, index) => {
+              if (char !== '*') return char;
+              if (CHARS_UPPER.includes(orgName[index])) return CHARS_UPPER[Math.floor(Math.random()*CHARS_UPPER.length)];
+              if (CHARS_LOWER.includes(orgName[index])) return CHARS_LOWER[Math.floor(Math.random()*CHARS_LOWER.length)];
+              if (CHARS_NUM.includes(orgName[index])) return CHARS_NUM[Math.floor(Math.random()*CHARS_NUM.length)];
+              return CHARS_ALL[Math.floor(Math.random()*CHARS_ALL.length)];
+            }).join('');
+          }
           bad_words = true;
         }
         if (DISABLE_FILTER || MSGREGEX.test(msg.message.replaceAll(STRIP_PUNCTUATION, ''))) {
