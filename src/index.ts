@@ -161,15 +161,13 @@ async function main() {
     await client.join(TARGET_CHANNEL);
     client.on('message', (msg) => {
       if (msg.command === 'PRIVMSG' && msg.channel === TARGET_CHANNEL) {
-        const name = handleUsername(msg.tags['display-name'], msg.prefix.nickname);
+        let name = handleUsername(msg.tags['display-name'], msg.prefix.nickname);
         let bad_words = false;
         if (name === null) return; // console.log('Unencodable Name');
         if (PROFANITY_FILTER.isProfane(name) || PROFANITY_FILTER.isProfane(msg.message)) {
           bad_words = true;
         }
         if (DISABLE_FILTER || MSGREGEX.test(msg.message.replaceAll(STRIP_PUNCTUATION, ''))) {
-          let punctuationCount = [...msg.message.matchAll(/\!/g)].length;
-          if (punctuationCount > 3) punctuationCount = 3;
           const badges = parseBadges((msg.tags as any).badges);
           transmitMessage({
             global: badges.global,
@@ -177,7 +175,6 @@ async function main() {
             username: name,
             bad_words,
             color: encodeColor((msg.tags as any).color),
-            punctuation: punctuationCount,
             message: msg.message
           });
         } else {
@@ -223,14 +220,12 @@ function transmitMessage(obj: {
   username: string,
   bad_words: boolean,
   color: [number, number, number],
-  punctuation: number,
   message: string
 }) {
   if (obj.username === undefined) return;
   if (obj.message === undefined) return;
   if (obj.global === undefined) obj.global = GLOBAL_BADGE.NO_BADGE;
   if (obj.channel === undefined) obj.channel = CHANNEL_BADGE.NO_BADGE;
-  if (obj.punctuation === undefined) obj.punctuation = 0;
   if (obj.color === undefined) obj.color = randomColor(calculateColorHash(obj.username));
   const message = JSON.stringify(obj);
   for (const client of SocketClients) {
