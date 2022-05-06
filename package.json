@@ -1,0 +1,29 @@
+{
+  "name": "@themas3212/udp-twitch-chat-proxy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prestart": "npm run-script build",
+    "build": "tsc",
+    "start": "node --enable-source-maps ."
+  },
+  "author": "TheMas3212",
+  "license": "MIT",
+  "dependencies": {
+    "@themas3212/irc": "^2.0.2",
+    "axios": "^0.22.0",
+    "bad-words": "^3.0.4",
+    "jsonfile": "^6.1.0",
+    "profane-words": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/bad-words": "^3.0.1",
+    "@types/jsonfile": "^6.0.1",
+    "@types/node": "^16.0.0",
+    "@typescript-eslint/parser": "^4.15.0",
+    "eslint": "^7.20.0",
+    "typescript": "^4.1.5"
+  }
+}
