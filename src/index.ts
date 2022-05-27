@@ -1,10 +1,10 @@
 import * as IRC from '@themas3212/irc';
 import { CHANNEL_BADGE, CHANNEL_BADGES, encodeColor, GLOBAL_BADGE, GLOBAL_BADGES, GLOBAL_LOOKUP, randomColor } from './constants';
 import badWords from 'bad-words';
-import profanity from 'profane-words';
 import * as DGRAM from 'dgram';
 import { createHash } from 'crypto';
 import { CONFIG } from './config';
+import { readFileSync } from 'fs';
 
 const PUNCTUATION = '[!]*';
 const STRIP_PUNCTUATION = /[^a-zA-Z\d]*/g;
@@ -14,8 +14,11 @@ const CHARS_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const CHARS_NUM = '1234567890';
 const CHARS_ALL = CHARS_LOWER + CHARS_UPPER + CHARS_NUM;
 
-const PROFANITY_FILTER = new badWords();
-PROFANITY_FILTER.addWords(...profanity);
+const wordlist = readFileSync(`${__dirname}/../wordlist/words.txt`, 'utf8').split('\n');
+
+const PROFANITY_FILTER = new badWords({
+  list: wordlist
+});
 
 function handleUsername(displayName: string, username: string) {
   if (typeof displayName === 'string' && displayName.match(VALID_USERNAME)) return displayName;

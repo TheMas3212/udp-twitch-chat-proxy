@@ -15,8 +15,7 @@
     "@themas3212/irc": "^2.0.2",
     "axios": "^0.22.0",
     "bad-words": "^3.0.4",
-    "jsonfile": "^6.1.0",
-    "profane-words": "^1.4.0"
+    "jsonfile": "^6.1.0"
   },
   "devDependencies": {
     "@types/bad-words": "^3.0.1",
