@@ -14,7 +14,7 @@ const CHARS_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const CHARS_NUM = '1234567890';
 const CHARS_ALL = CHARS_LOWER + CHARS_UPPER + CHARS_NUM;
 
-const wordlist = readFileSync(`${__dirname}/../wordlist/words.txt`, 'utf8').split('\n');
+const wordlist = readFileSync(`${__dirname}/../wordlist/words.txt`, 'utf8').split('\n').filter((str) => str.length > 0);
 
 const PROFANITY_FILTER = new badWords({
   list: wordlist
