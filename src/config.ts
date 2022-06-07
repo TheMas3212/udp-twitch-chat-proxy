@@ -26,6 +26,15 @@ CONFIG.registerOption('udp_socket_server', {
   }
 });
 
+CONFIG.registerOption('twitch_username', {
+  default: '',
+  description: 'Username to use to connect to chat with\n; twitch_username = johndoe'
+});
+CONFIG.registerOption('twitch_oauth', {
+  default: '',
+  description: 'OAuth token for connection to chat\n; twitch_oauth = oauth:abcdefghijklmnopqrstuvwxyz'
+});
+
 if (require.main === module) {
   console.log(CONFIG.generateDefaultConfig());
 }
