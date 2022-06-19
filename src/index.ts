@@ -19,11 +19,58 @@ const wordlist = readFileSync(`${__dirname}/../wordlist/words.txt`, 'utf8').spli
 const PROFANITY_FILTER = new badWords({
   list: wordlist
 });
+const LEET_PROFANITY_FILTER = new badWords({
+  list: wordlist.map(deleet)
+});
 
 function handleUsername(displayName: string, username: string) {
   if (typeof displayName === 'string' && displayName.match(VALID_USERNAME)) return displayName;
   if (typeof username === 'string' && username.match(VALID_USERNAME)) return username;
   return null;
+}
+
+function deleet(str: string) {
+  return str
+    .replace(/4/g,         'a')
+    .replace(/8/g,         'b')
+    .replace(/3/g,         'e')
+    .replace(/9/g,         'g')
+    // .replace(/[1l]/g,      'i') // i and l are interchangable
+    .replace(/0/g,         'o')
+    .replace(/9/g,         'q')
+    // .replace(/5z/g,        's') // z and s are interchangable
+    // .replace(/u/g,         'v') // u and v are interchangable
+    .replace(/7/g,         't');
+}
+
+function isProfane(str: string) {
+  return PROFANITY_FILTER.isProfane(str) || LEET_PROFANITY_FILTER.isProfane(deleet(str));
+}
+
+function removeProfanity(str: string) {
+  let i = 0;
+  while (isProfane(str)) {
+    if (i++ > 100) return null;
+    const oldStr = str;
+    if (PROFANITY_FILTER.isProfane(str)) {
+      str = PROFANITY_FILTER.clean(str).split('').map((char, index) => {
+        if (char !== '*') return char;
+        if (CHARS_UPPER.includes(oldStr[index])) return CHARS_UPPER[Math.floor(Math.random()*CHARS_UPPER.length)];
+        if (CHARS_LOWER.includes(oldStr[index])) return CHARS_LOWER[Math.floor(Math.random()*CHARS_LOWER.length)];
+        if (CHARS_NUM.includes(oldStr[index])) return CHARS_NUM[Math.floor(Math.random()*CHARS_NUM.length)];
+        return CHARS_ALL[Math.floor(Math.random()*CHARS_ALL.length)];
+      }).join('');
+    } else {
+      str = LEET_PROFANITY_FILTER.clean(deleet(str)).split('').map((char, index) => {
+        if (char !== '*') return char;
+        if (CHARS_UPPER.includes(oldStr[index])) return CHARS_UPPER[Math.floor(Math.random()*CHARS_UPPER.length)];
+        if (CHARS_LOWER.includes(oldStr[index])) return CHARS_LOWER[Math.floor(Math.random()*CHARS_LOWER.length)];
+        if (CHARS_NUM.includes(oldStr[index])) return CHARS_NUM[Math.floor(Math.random()*CHARS_NUM.length)];
+        return CHARS_ALL[Math.floor(Math.random()*CHARS_ALL.length)];
+      }).join('');
+    }
+  }
+  return str;
 }
 
 function parseBadges(badgesTag: string, msg: IRC.TwitchMessage) {
@@ -196,17 +243,9 @@ async function main() {
         let name = handleUsername(msg.tags['display-name'], msg.prefix.nickname);
         let bad_words = false;
         if (name === null) return; // console.log('Unencodable Name');
-        if (PROFANITY_FILTER.isProfane(name)) {
-          const orgName = name;
-          while (PROFANITY_FILTER.isProfane(name)) {
-            name = PROFANITY_FILTER.clean(name).split('').map((char, index) => {
-              if (char !== '*') return char;
-              if (CHARS_UPPER.includes(orgName[index])) return CHARS_UPPER[Math.floor(Math.random()*CHARS_UPPER.length)];
-              if (CHARS_LOWER.includes(orgName[index])) return CHARS_LOWER[Math.floor(Math.random()*CHARS_LOWER.length)];
-              if (CHARS_NUM.includes(orgName[index])) return CHARS_NUM[Math.floor(Math.random()*CHARS_NUM.length)];
-              return CHARS_ALL[Math.floor(Math.random()*CHARS_ALL.length)];
-            }).join('');
-          }
+        if (isProfane(name)) {
+          name = removeProfanity(name);
+          if (name === null) return;
           bad_words = true;
         }
         if (DISABLE_FILTER || MSGREGEX.test(msg.message.replaceAll(STRIP_PUNCTUATION, ''))) {
