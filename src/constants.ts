@@ -189,6 +189,7 @@ export function encodeColor(hexColor: string): [number, number, number] {
   const red = parseInt(hexColor.slice(1,3), 16);
   const green = parseInt(hexColor.slice(3,5), 16);
   const blue = parseInt(hexColor.slice(5,7), 16);
+  if (isNaN(red) || isNaN(green) || isNaN(blue)) return undefined;
   return [red, green, blue];
 }
 
