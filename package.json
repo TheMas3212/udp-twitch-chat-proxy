@@ -14,12 +14,12 @@
   "dependencies": {
     "@themas3212/irc": "^2.0.2",
     "axios": "^0.22.0",
-    "bad-words": "^3.0.4",
-    "jsonfile": "^6.1.0"
+    "jsonfile": "^6.1.0",
+    "leo-profanity": "^1.5.0"
   },
   "devDependencies": {
-    "@types/bad-words": "^3.0.1",
     "@types/jsonfile": "^6.0.1",
+    "@types/leo-profanity": "^1.5.0",
     "@types/node": "^16.0.0",
     "@typescript-eslint/parser": "^4.15.0",
     "eslint": "^7.20.0",

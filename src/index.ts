@@ -1,6 +1,6 @@
 import * as IRC from '@themas3212/irc';
 import { CHANNEL_BADGE, CHANNEL_BADGES, encodeColor, GLOBAL_BADGE, GLOBAL_BADGES, GLOBAL_LOOKUP, randomColor } from './constants';
-import badWords from 'bad-words';
+import PROFANITY_FILTER from 'leo-profanity';
 import * as DGRAM from 'dgram';
 import { createHash } from 'crypto';
 import { CONFIG } from './config';
@@ -16,12 +16,16 @@ const CHARS_ALL = CHARS_LOWER + CHARS_UPPER + CHARS_NUM;
 
 const wordlist = readFileSync(`${__dirname}/../wordlist/words.txt`, 'utf8').split('\n').filter((str) => str.length > 0);
 
-const PROFANITY_FILTER = new badWords({
-  list: wordlist
-});
-const LEET_PROFANITY_FILTER = new badWords({
-  list: wordlist.map(deleet)
-});
+// const PROFANITY_FILTER = new badWords({
+//   list: wordlist
+// });
+// const LEET_PROFANITY_FILTER = new badWords({
+//   list: wordlist.map(deleet)
+// });
+
+PROFANITY_FILTER.clearList();
+PROFANITY_FILTER.add(wordlist);
+PROFANITY_FILTER.add(wordlist.map(deleet));
 
 function handleUsername(displayName: string, username: string) {
   if (typeof displayName === 'string' && displayName.match(VALID_USERNAME)) return displayName;
@@ -44,15 +48,21 @@ function deleet(str: string) {
 }
 
 function isProfane(str: string) {
-  return PROFANITY_FILTER.isProfane(str) || LEET_PROFANITY_FILTER.isProfane(deleet(str));
+  return PROFANITY_FILTER.check(str) || PROFANITY_FILTER.check(deleet(str)) || wordlist.some((word) => {
+    return str.includes(word) || deleet(str).includes(word);
+  });
+  // return PROFANITY_FILTER.isProfane(str) || LEET_PROFANITY_FILTER.isProfane(deleet(str));
 }
 
 function removeProfanity(str: string) {
   let i = 0;
+  loop:
   while (isProfane(str)) {
-    if (i++ > 100) return null;
+    if (i++ > 100) {
+      return null;
+    }
     const oldStr = str;
-    if (PROFANITY_FILTER.isProfane(str)) {
+    if (PROFANITY_FILTER.check(str)) {
       str = PROFANITY_FILTER.clean(str).split('').map((char, index) => {
         if (char !== '*') return char;
         if (CHARS_UPPER.includes(oldStr[index])) return CHARS_UPPER[Math.floor(Math.random()*CHARS_UPPER.length)];
@@ -60,14 +70,34 @@ function removeProfanity(str: string) {
         if (CHARS_NUM.includes(oldStr[index])) return CHARS_NUM[Math.floor(Math.random()*CHARS_NUM.length)];
         return CHARS_ALL[Math.floor(Math.random()*CHARS_ALL.length)];
       }).join('');
-    } else {
-      str = LEET_PROFANITY_FILTER.clean(deleet(str)).split('').map((char, index) => {
+    } if (str !== deleet(str) && PROFANITY_FILTER.check(deleet(str))) {
+      str = PROFANITY_FILTER.clean(deleet(str)).split('').map((char, index) => {
         if (char !== '*') return char;
         if (CHARS_UPPER.includes(oldStr[index])) return CHARS_UPPER[Math.floor(Math.random()*CHARS_UPPER.length)];
         if (CHARS_LOWER.includes(oldStr[index])) return CHARS_LOWER[Math.floor(Math.random()*CHARS_LOWER.length)];
         if (CHARS_NUM.includes(oldStr[index])) return CHARS_NUM[Math.floor(Math.random()*CHARS_NUM.length)];
         return CHARS_ALL[Math.floor(Math.random()*CHARS_ALL.length)];
       }).join('');
+    } else {
+      for (const word of PROFANITY_FILTER.list()) {
+        let start = -1;
+        if (str.includes(word)) {
+          start = str.indexOf(word);
+        } else if (deleet(str).includes(word)) {
+          start = deleet(str).indexOf(word);
+        }
+        if (start !== -1) {
+          str = str.replace(word, '*'.repeat(word.length));
+          str = str.split('').map((char, index) => {
+            if (char !== '*') return char;
+            if (CHARS_UPPER.includes(oldStr[index])) return CHARS_UPPER[Math.floor(Math.random()*CHARS_UPPER.length)];
+            if (CHARS_LOWER.includes(oldStr[index])) return CHARS_LOWER[Math.floor(Math.random()*CHARS_LOWER.length)];
+            if (CHARS_NUM.includes(oldStr[index])) return CHARS_NUM[Math.floor(Math.random()*CHARS_NUM.length)];
+            return CHARS_ALL[Math.floor(Math.random()*CHARS_ALL.length)];
+          }).join('');
+          continue loop;
+        }
+      }
     }
   }
   return str;
