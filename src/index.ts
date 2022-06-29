@@ -56,6 +56,7 @@ function isProfane(str: string) {
 
 function removeProfanity(str: string) {
   let i = 0;
+  console.log(`DEBUG: blocked username: ${str}`);
   loop:
   while (isProfane(str)) {
     if (i++ > 100) {
