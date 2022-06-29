@@ -56,7 +56,27 @@ function isProfane(str: string) {
 
 function removeProfanity(str: string) {
   let i = 0;
-  console.log(`DEBUG: blocked username: ${str}`);
+  const oldStr = str;
+  if (PROFANITY_FILTER.check(str)) {
+    const blockedWord = PROFANITY_FILTER.clean(str).split('').map((char, index) => {
+      if (char !== '*') return '';
+      return oldStr[index];
+    }).join('');
+    console.log(`DEBUG: blocked username: ${str} contains: ${blockedWord}`);
+  } else if (PROFANITY_FILTER.check(deleet(str))) {
+    const blockedWord = PROFANITY_FILTER.clean(str).split('').map((char, index) => {
+      if (char !== '*') return '';
+      return oldStr[index];
+    }).join('');
+    console.log(`DEBUG: blocked username: ${str} contains: ${blockedWord}`);
+  } else {
+    for (const word of PROFANITY_FILTER.list()) {
+      if (str.includes(word)) {
+        console.log(`DEBUG: blocked username: ${str} contains: ${word}`);
+        break;
+      }
+    }
+  }
   loop:
   while (isProfane(str)) {
     if (i++ > 100) {
