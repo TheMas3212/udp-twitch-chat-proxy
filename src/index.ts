@@ -80,9 +80,9 @@ function removeProfanity(str: string) {
   loop:
   while (isProfane(str)) {
     if (i++ > 100) {
+      console.log('DEBUG: overflow');
       return null;
     }
-    const oldStr = str;
     if (PROFANITY_FILTER.check(str)) {
       str = PROFANITY_FILTER.clean(str).split('').map((char, index) => {
         if (char !== '*') return char;
@@ -121,6 +121,7 @@ function removeProfanity(str: string) {
       }
     }
   }
+  console.log(`DEBUG: username ${oldStr} censored to ${str}`);
   return str;
 }
 
@@ -294,12 +295,12 @@ async function main() {
         let name = handleUsername(msg.tags['display-name'], msg.prefix.nickname);
         let bad_words = false;
         if (name === null) return; // console.log('Unencodable Name');
-        if (isProfane(name)) {
-          name = removeProfanity(name);
-          if (name === null) return;
-          bad_words = true;
-        }
         if (DISABLE_FILTER || MSGREGEX.test(msg.message.replaceAll(STRIP_PUNCTUATION, ''))) {
+          if (isProfane(name)) {
+            name = removeProfanity(name);
+            if (name === null) return;
+            bad_words = true;
+          }
           const badges = parseBadges((msg.tags as any).badges, msg);
           transmitMessage({
             global: badges.global,
